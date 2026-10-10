@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="author" content="Dani Sutrisno dan Dava Rianto RPL">
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 <title>Gasing — Adu Putaran</title>
 <link href="https://fonts.googleapis.com/css2?family=Almendra+Display&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
@@ -43,6 +44,15 @@ button.btn:hover,select:hover{background:var(--gold);color:#2a1608}
 :focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 details{width:100%;background:var(--panel);border:1px solid var(--lat);border-radius:14px;padding:10px 16px;font-size:.95rem;line-height:1.55}
 summary{cursor:pointer;font-weight:600}
+.room{width:100%;background:var(--panel);border:2px solid var(--gold);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center}
+.room[hidden],.code[hidden]{display:none}
+.rrow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center}
+#rc{font:400 1.2rem 'Almendra Display',Georgia,serif;letter-spacing:.3em;text-transform:uppercase;width:7.6em;text-align:center;color:var(--ink);background:rgba(0,0,0,.25);border:1.5px solid var(--gold);border-radius:999px;padding:7px 10px}
+.rs{min-height:1.4em;font-size:.98rem;line-height:1.45}
+.rs b{color:var(--gold)}
+.code{display:flex;flex-direction:column;align-items:center;gap:6px}
+#codeTxt{font-family:'Almendra Display',Georgia,serif;font-size:clamp(2.2rem,11vw,3.2rem);letter-spacing:.25em;padding-left:.25em;color:var(--gold);filter:drop-shadow(0 2px 0 rgba(0,0,0,.4))}
+button.btn:disabled{opacity:.5;cursor:default}
 #load{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px;text-align:center;
   background-color:var(--bg);background-image:repeating-linear-gradient(45deg,var(--lat) 0 1px,transparent 1px 26px),repeating-linear-gradient(-45deg,var(--lat) 0 1px,transparent 1px 26px);
   transition:opacity .6s,visibility .6s}
@@ -83,22 +93,31 @@ summary{cursor:pointer;font-weight:600}
   <div class="arena"><canvas id="cv" aria-label="Gelanggang gasing. Tarik ke bawah dari gasing merah lalu lepas untuk melempar."></canvas></div>
   <div id="say" aria-live="polite"></div>
   <div class="bar">
-    <select id="mode" aria-label="Mode permainan"><option value="1">VS AI (main sendiri)</option><option value="2">2 pemain (satu layar)</option></select>
+    <select id="mode" aria-label="Mode permainan"><option value="1">VS AI (main sendiri)</option><option value="2">2 pemain (satu layar)</option><option value="3">Online (kode ruang)</option></select>
     <button class="btn" id="auto">Lempar otomatis</button>
-    <select id="lvl" aria-label="Tingkat kesulitan"><option value="hard">AI Naga: Gesit</option><option value="easy">AI Naga: Santai</option></select>
+    <select id="lvl" aria-label="Tingkat kesulitan"><option value="hard">AI Naga: Gesit</option><option value="easy">AI Naga: Santai</option><option value="pro">AI Naga: Jago</option></select>
     <button class="btn" id="snd">Suara: nyala</button>
     <button class="btn" id="re">Mulai ulang</button>
+  </div>
+  <div class="room" id="room" hidden>
+    <div class="rrow"><button class="btn" id="mk">Buat ruang</button><span>atau</span>
+      <input id="rc" maxlength="5" placeholder="KODE" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Kode ruang">
+      <button class="btn" id="jn">Gabung</button></div>
+    <div class="code" id="code" hidden><div id="codeTxt"></div><button class="btn" id="cp">Salin tautan ajakan</button></div>
+    <div class="rs" id="rs" aria-live="polite">Buat ruang lalu bagikan kodenya, atau masukkan kode dari temanmu.</div>
   </div>
   <details>
     <summary>Cara bermain</summary>
     <ol>
       <li>Tarik ke bawah dari gasing merahmu (Garuda), seperti menarik tali. Makin jauh tarikan, makin kencang lemparan dan putarannya.</li>
       <li>Lepas untuk melempar. Gelanggang agak cekung, jadi kedua gasing cenderung bertemu di tengah.</li>
+      <li>Setelah melempar, <b>ketuk gelanggang</b> (atau tekan Spasi) untuk menyerang dengan dorongan ke arah lawan. Isi ulangnya sekitar 2,6 detik dan memakan sedikit putaran.</li>
       <li>Saat bertabrakan, gasing yang putarannya lebih lemah terpental lebih jauh dan kehilangan lebih banyak putaran.</li>
-      <li>Gasing kalah jika terlempar keluar dari lingkar emas atau putarannya habis dan tumbang.</li>
+      <li>Pinggir gelanggang memantulkan gasing yang pelan. Gasing kalah jika putarannya habis dan tumbang, atau terlempar keluar oleh hantaman sangat keras.</li>
       <li>Menangkan dua dari tiga ronde.</li>
-      <li><b>VS AI:</b> main sendiri melawan Naga. Pilih tingkat Santai atau Gesit di samping pilihan mode.</li>
-      <li><b>Mode 2 pemain:</b> Pemain 1 menarik dari gasing merah (bawah), Pemain 2 dari gasing hijau (atas). Boleh bersamaan dengan dua jari, atau bergantian. Yang belum melempar setelah 5 detik dilempar otomatis.</li>
+      <li><b>VS AI:</b> main sendiri melawan Naga. Pilih tingkat Santai, Gesit, atau Jago di samping pilihan mode.</li>
+      <li><b>Mode 2 pemain:</b> Pemain 1 menarik dari gasing merah (bawah), Pemain 2 dari gasing hijau (atas). Boleh bersamaan dengan dua jari, atau bergantian. Yang belum melempar setelah 5 detik dilempar otomatis. Untuk menyerang, ketuk separuh layarmu (atau tekan Spasi untuk P1, Enter untuk P2).</li>
+      <li><b>Online:</b> pilih mode Online, lalu satu pemain menekan <b>Buat ruang</b> dan membagikan kode 5 huruf. Pemain lain memasukkan kode itu lalu menekan <b>Gabung</b>. Pembuat ruang jadi Garuda (merah), yang bergabung jadi Naga (hijau) dan layarnya dibalik agar gasingmu selalu di bawah.</li>
     </ol>
   </details>
   <footer class="cr">Dibuat oleh <b>Dani Sutrisno</b> dan <b>Dava Rianto</b> RPL</footer>
@@ -108,11 +127,12 @@ const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const bg=document.createElement('canvas'),bx=bg.getContext('2d');
 const tr=document.createElement('canvas'),tx=tr.getContext('2d');
-const R=46,ARENA=430;
-let sc=1,dpr=1,P,A,state='aim',score={P:0,A:0},round=1,drag=null,parts=[],shake=0,tmo=0,muted=false,AC,mode=1,wt=0,drags={};
+const R=46,ARENA=430,RIM=424,OUTV=800,BOWL=.6,DAMP=.35,DECAY=2,SPD=.002,HIT=.004,WANDER=200;
+let sc=1,dpr=1,P,A,state='aim',score={P:0,A:0},round=1,drag=null,parts=[],shake=0,tmo=0,muted=false,AC,mode=1,wt=0,at=0,drags={},peer=null,conn=null,role=null,online=false,flip=false,snapT=0,evs=[],outMsg=null,jt=0,lastH='';
 
 /* suara */
 function tone(f,d,type,v){
+  if(role==='host'&&online)evs.push(['tn',f,d,type||'triangle',v||.08]);
   if(muted)return;
   try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();
   o.type=type||'triangle';o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*.5,t+d);
@@ -147,71 +167,98 @@ function paintBG(){
 }
 
 /* gasing */
-function mk(s){return{s,x:500,y:s==='P'?800:200,vx:0,vy:0,spin:70,ang:Math.random()*6,ph:Math.random()*6,sc:1,launched:false,dead:false,out:false,fall:0,px:500,py:s==='P'?800:200,
+function mk(s){return{s,x:500,y:s==='P'?800:200,vx:0,vy:0,spin:70,ang:Math.random()*6,ph:Math.random()*6,sc:1,seed:Math.random()*6.28,w:0,cd:0,launched:false,dead:false,out:false,fall:0,px:500,py:s==='P'?800:200,
   c1:s==='P'?'#ff8a5c':'#52e0bf',c2:s==='P'?'#a3200f':'#0b5f4f'}}
 function newRound(){
   P=mk('P');A=mk('A');tx.setTransform(1,0,0,1,0,0);tx.clearRect(0,0,tr.width,tr.height);parts=[];
-  state='aim';wt=0;drags={};hud();say(mode===2?'<b>Pemain 1</b> tarik dari gasing merah (bawah), <b>Pemain 2</b> dari gasing hijau (atas), lalu <b>lepas</b>. Boleh bersamaan.':'Tarik ke bawah dari gasing merah, lalu <b>lepas</b> untuk melempar.');
+  state='aim';wt=0;at=0;drags={};hud();say(mode===3?'Tarik <b>ke bawah</b> dari gasingmu, lalu <b>lepas</b> untuk melempar. Lawanmu juga bersiap.':mode===2?'<b>Pemain 1</b> tarik dari gasing merah (bawah), <b>Pemain 2</b> dari gasing hijau (atas), lalu <b>lepas</b>. Boleh bersamaan.':'Tarik ke bawah dari gasing merah, lalu <b>lepas</b> untuk melempar.');
 }
 function launchT(t,dx,dy,power){
-  if(t.launched||(state!=='aim'&&!(state==='fight'&&mode===2)))return;
-  const l=Math.hypot(dx,dy)||1,sp=380+power*880;
-  t.vx=dx/l*sp;t.vy=dy/l*sp;t.spin=95+power*45;t.launched=true;state='fight';tone(170,.35,'sawtooth',.06);
-  if(mode===2)say(P.launched&&A.launched?'<b>Bertahanlah!</b> Gasing terakhir yang berputar menang.':'Menunggu <b>'+(t.s==='P'?'Pemain 2':'Pemain 1')+'</b> melempar...');
+  if(t.launched||(state!=='aim'&&!(state==='fight'&&mode>=2)))return;
+  const l=Math.hypot(dx,dy)||1,sp=300+power*450;
+  t.vx=dx/l*sp;t.vy=dy/l*sp;t.spin=120+power*50;t.launched=true;state='fight';tone(170,.35,'sawtooth',.06);
+  if(mode>=2){
+    if(P.launched&&A.launched)say('<b>Bertahanlah!</b> Ketuk gelanggang untuk <b>menyerang</b>.');
+    else if(mode===3){const w='Menunggu lawan melempar...',g='Lawan sudah melempar! Cepat lempar gasingmu.';say(t.s==='P'?w:g,t.s==='P'?g:w)}
+    else say('Menunggu <b>'+(t.s==='P'?'Pemain 2':'Pemain 1')+'</b> melempar...');
+  }
 }
 function launchP(dx,dy,power){
-  if(mode===2||state!=='aim')return;
+  if(mode>=2||state!=='aim')return;
   launchT(P,dx,dy,power);
-  say('<b>Bertahanlah!</b> Gasing terakhir yang berputar menang.');
-  const hard=$('lvl').value==='hard';
+  say('<b>Bertahanlah!</b> Ketuk gelanggang untuk <b>menyerang</b>.');
+  const L={easy:[220,.7,380,170,105,20],hard:[60,.14,560,170,125,20],pro:[20,.06,600,160,142,18]}[$('lvl').value];
   setTimeout(()=>{
     if(state!=='fight')return;
-    const tx2=P.x+(Math.random()-.5)*(hard?60:220),ty2=P.y+(Math.random()-.5)*(hard?60:220);
-    let a=Math.atan2(ty2-A.y,tx2-A.x)+(Math.random()-.5)*(hard?.14:.7);
-    const s=hard?900+Math.random()*250:560+Math.random()*260;
-    A.vx=Math.cos(a)*s;A.vy=Math.sin(a)*s;A.launched=true;A.spin=hard?118+Math.random()*24:92+Math.random()*16;tone(150,.3,'sawtooth',.05);
+    const tx2=P.x+(Math.random()-.5)*L[0],ty2=P.y+(Math.random()-.5)*L[0];
+    const a=Math.atan2(ty2-A.y,tx2-A.x)+(Math.random()-.5)*L[1],s=L[2]+Math.random()*L[3];
+    A.vx=Math.cos(a)*s;A.vy=Math.sin(a)*s;A.launched=true;A.spin=L[4]+Math.random()*L[5];tone(150,.3,'sawtooth',.05);
   },420);
 }
-function spark(x,y,n){for(let i=0;i<n;i++){const a=Math.random()*7,s=140+Math.random()*420;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:.55,m:.55})}}
+function spark(x,y,n){if(role==='host'&&online)evs.push(['sp',Math.round(x),Math.round(y),Math.round(n)]);for(let i=0;i<n;i++){const a=Math.random()*7,s=140+Math.random()*420;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:.55,m:.55})}}
 
 function phys(dt){
   for(const t of [P,A]){
     t.ang+=t.spin*dt*.12;
     if(t.dead){t.fall=Math.min(1,t.fall+dt/(t.out?.6:1));t.sc=1-t.fall*(t.out?1:.35);t.x+=t.vx*dt;t.y+=t.vy*dt;t.vx*=.97;t.vy*=.97;t.spin=Math.max(0,t.spin-35*dt);continue}
     if(!t.launched)continue;
-    t.vx+=(500-t.x)*.26*dt;t.vy+=(500-t.y)*.26*dt;
-    const dm=Math.exp(-.38*dt);t.vx*=dm;t.vy*=dm;t.x+=t.vx*dt;t.y+=t.vy*dt;
-    t.spin-=(3.4+Math.hypot(t.vx,t.vy)*.0045)*dt;
+    t.cd=Math.max(0,t.cd-dt);
+    t.vx+=(500-t.x)*BOWL*dt;t.vy+=(500-t.y)*BOWL*dt;
+    const dm=Math.exp(-DAMP*dt);t.vx*=dm;t.vy*=dm;
+    const sp0=Math.hypot(t.vx,t.vy);if(sp0>1500){t.vx*=1500/sp0;t.vy*=1500/sp0}
+    t.w+=dt*1.3;t.vx+=Math.cos(t.w+t.seed)*WANDER*dt;t.vy+=Math.sin(t.w+t.seed)*WANDER*dt;
+    t.x+=t.vx*dt;t.y+=t.vy*dt;
+    t.spin-=(DECAY+sp0*SPD)*dt;
     t.ph+=dt*(6+(45-Math.min(t.spin,45))*.4);
     if(Math.hypot(t.vx,t.vy)>30){tx.setTransform(sc,0,0,sc,0,0);tx.strokeStyle='rgba(85,48,22,.16)';tx.lineWidth=7;tx.lineCap='round';
       tx.beginPath();tx.moveTo(t.px,t.py);tx.lineTo(t.x,t.y);tx.stroke()}
     t.px=t.x;t.py=t.y;
-    if(Math.hypot(t.x-500,t.y-500)>ARENA+14){t.dead=true;t.out=true;tone(300,.5,'sine',.06)}
-    else if(t.spin<12){t.dead=true;t.vx*=.3;t.vy*=.3;tone(120,.4,'sine',.06)}
+    const rx=t.x-500,ry=t.y-500,rd=Math.hypot(rx,ry);
+    if(rd>RIM){
+      const nx=rx/rd,ny=ry/rd,vr=t.vx*nx+t.vy*ny;
+      if(vr>OUTV){t.dead=true;t.out=true;tone(300,.5,'sine',.06)}
+      else if(vr>0){
+        t.x=500+nx*RIM;t.y=500+ny*RIM;t.vx-=1.5*vr*nx;t.vy-=1.5*vr*ny;t.spin-=vr*.004;
+        spark(t.x,t.y,Math.min(10,vr/60));shake=Math.max(shake,Math.min(8,vr/120));tone(220,.08,'triangle',.04);
+      }
+    }
+    if(!t.dead&&t.spin<12){t.dead=true;t.vx*=.3;t.vy*=.3;tone(120,.4,'sine',.06)}
   }
+  if(state==='fight'&&(P.dead||A.dead))endRound(P.dead&&A.dead?null:P.dead?'A':'P');
   if(P.dead||A.dead)return;
   let dx=A.x-P.x,dy=A.y-P.y,d=Math.hypot(dx,dy);
+  if(d<R*2+4&&d>0){const ux=dx/d,uy=dy/d;P.spin-=5*dt;A.spin-=5*dt;P.vx-=ux*140*dt;P.vy-=uy*140*dt;A.vx+=ux*140*dt;A.vy+=uy*140*dt}
   if(d<R*2&&d>0){
     const nx=dx/d,ny=dy/d,o=(R*2-d)/2;
     P.x-=nx*o;P.y-=ny*o;A.x+=nx*o;A.y+=ny*o;
     const rel=(A.vx-P.vx)*nx+(A.vy-P.vy)*ny;
     if(rel<0){
-      const I=-rel,imp=I*.96;
+      const I=-rel,imp=I;
       P.vx-=imp*nx;P.vy-=imp*ny;A.vx+=imp*nx;A.vy+=imp*ny;
-      const sa=(A.spin-P.spin)/(A.spin+P.spin+1),pP=Math.max(sa,0),pA=Math.max(-sa,0),K=I*.5;
+      const sa=(A.spin-P.spin)/(A.spin+P.spin+1),pP=Math.max(sa,0),pA=Math.max(-sa,0),K=I*1.1;
       P.vx-=nx*pP*K;P.vy-=ny*pP*K;A.vx+=nx*pA*K;A.vy+=ny*pA*K;
-      P.spin-=I*.012*(1+pP*2.5);A.spin-=I*.012*(1+pA*2.5);
+      P.spin-=I*HIT*(1+pP*2.5);A.spin-=I*HIT*(1+pA*2.5);
       spark(500*0+(P.x+A.x)/2,(P.y+A.y)/2,Math.min(26,I/40));shake=Math.min(16,I/70);
       tone(700+Math.random()*500,.14,'square',Math.min(.12,.03+I/9000));
       tx.setTransform(sc,0,0,sc,0,0);tx.fillStyle='rgba(60,30,12,.25)';tx.beginPath();tx.arc((P.x+A.x)/2,(P.y+A.y)/2,18,0,7);tx.fill();
     }
   }
-  if(state==='fight'&&(P.dead||A.dead))endRound(P.dead&&A.dead?null:P.dead?'A':'P');
+}
+function dash(t){
+  if(state!=='fight'||!t.launched||t.dead||t.cd>0)return;
+  const o=t===P?A:P,dx=o.x-t.x,dy=o.y-t.y,d=Math.hypot(dx,dy)||1;
+  t.vx+=dx/d*620;t.vy+=dy/d*620;t.cd=2.6;t.spin-=6;spark(t.x,t.y,10);tone(420,.18,'sawtooth',.05);
+}
+function aiThink(dt){
+  if(mode!==1||state!=='fight'||!A.launched||A.dead||P.dead)return;
+  at+=dt;const lv=$('lvl').value,gap=lv==='pro'?1.4:lv==='hard'?2.6:5;
+  if(at>gap&&A.cd<=0){at=0;if(lv==='pro'||Math.hypot(P.x-A.x,P.y-A.y)<520)dash(A)}
 }
 function endRound(w){
   state='over';if(w)score[w]++;hud();
   const nm={P:'Garuda',A:'Naga'};
   if(score.P===2||score.A===2){
+    if(mode===3){const hw=score.P===2;say(hw?'<b>Kamu juara!</b> Tekan Mulai ulang untuk adu lagi.':'<b>Lawan juara.</b> Tekan Mulai ulang untuk balas.',hw?'<b>Lawan juara.</b> Tunggu tuan rumah memulai ulang.':'<b>Kamu juara!</b> Tunggu tuan rumah memulai ulang.');state='done';return}
     say(mode===2?'<b>'+(score.P===2?'Pemain 1 (Garuda)':'Pemain 2 (Naga)')+' juara!</b> Tekan Mulai ulang untuk adu lagi.':score.P===2?'<b>Kamu juara!</b> Garuda menguasai gelanggang. Tekan Mulai ulang untuk adu lagi.':'<b>Naga juara.</b> Putaran Naga lebih awet kali ini. Tekan Mulai ulang untuk balas.');
     state='done';return;
   }
@@ -221,9 +268,9 @@ function endRound(w){
 function hud(){
   ['P','A'].forEach(k=>{$('pip'+k).innerHTML=[0,1].map(i=>`<span class="${i<score[k]?'on':''}"></span>`).join('')});
   $('rd').textContent='Ronde '+Math.min(round,3);
-  $('tagP').textContent=mode===2?'P1':'kamu';$('tagA').textContent=mode===2?'P2':'AI';
+  const gs=mode===3&&role==='guest';$('tagP').textContent=mode===3?(gs?'lawan':'kamu'):mode===2?'P1':'kamu';$('tagA').textContent=mode===3?(gs?'kamu':'lawan'):mode===2?'P2':'AI';
 }
-const say=h=>$('say').innerHTML=h;
+const say=(h,g)=>{$('say').innerHTML=h;if(role==='host'&&online)outMsg=g===undefined?h:g};
 
 /* gambar */
 function drawTop(t){
@@ -249,8 +296,9 @@ function draw(dt){
   ctx.drawImage(bg,0,0);
   ctx.save();
   if(shake>.3){ctx.translate((Math.random()-.5)*shake*sc,(Math.random()-.5)*shake*sc);shake*=.88}
-  ctx.drawImage(tr,0,0);
+  if(flip){ctx.save();ctx.translate(cv.width,cv.height);ctx.rotate(Math.PI);ctx.drawImage(tr,0,0);ctx.restore()}else ctx.drawImage(tr,0,0);
   ctx.setTransform(sc,0,0,sc,0,0);
+  if(flip)ctx.transform(-1,0,0,-1,1000,1000);
   for(const k in drags)(function(drag,P){
     let vx=P.x-drag.x,vy=P.y-drag.y,l=Math.hypot(vx,vy);
     if(l>8){
@@ -261,28 +309,33 @@ function draw(dt){
     }
   })(drags[k],drags[k].who==='P'?P:A);
   [P,A].sort((a,b)=>a.sc-b.sc).forEach(drawTop);
+  [P,A].forEach(t=>{if(t.launched&&!t.dead){ctx.strokeStyle=t.cd<=0?'rgba(255,225,140,.85)':'rgba(255,225,140,.3)';ctx.lineWidth=4;ctx.beginPath();
+    ctx.arc(t.x,t.y,R+10,-Math.PI/2,-Math.PI/2+(1-t.cd/2.6)*Math.PI*2);ctx.stroke()}});
   for(const p of parts){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.93;p.vy*=.93;p.l-=dt;
     if(p.l>0){ctx.globalAlpha=p.l/p.m;ctx.fillStyle='#ffd978';ctx.beginPath();ctx.arc(p.x,p.y,4*(p.l/p.m)+1,0,7);ctx.fill()}}
   ctx.globalAlpha=1;parts=parts.filter(p=>p.l>0);
   ctx.restore();
   const aim=state==='aim';
-  $('mP').style.width=aim?'0%':Math.max(0,Math.min(100,P.spin/1.5))+'%';
-  $('mA').style.width=aim?'0%':Math.max(0,Math.min(100,A.spin/1.5))+'%';
+  $('mP').style.width=aim?'0%':Math.max(0,Math.min(100,P.spin/1.7))+'%';
+  $('mA').style.width=aim?'0%':Math.max(0,Math.min(100,A.spin/1.7))+'%';
 }
 let last=0;
 function frame(ts){
   const dt=Math.min((ts-last)/1000,1/30)||.016;last=ts;
-  if(state==='aim'){P.ang+=dt*3;A.ang-=dt*3}
-  else{phys(dt/2);phys(dt/2);if(state==='fight'&&mode===2&&!(P.launched&&A.launched)){wt+=dt;if(wt>5){const t=P.launched?A:P;launchT(t,500-t.x,500-t.y,.6)}}}
+  if(role==='guest')guestStep(dt);
+  else if(state==='aim'){P.ang+=dt*3;A.ang-=dt*3}
+  else{phys(dt/2);phys(dt/2);if(state==='fight'&&mode>=2&&!(P.launched&&A.launched)){wt+=dt;if(wt>5){const t=P.launched?A:P;launchT(t,500-t.x,500-t.y,.6)}}aiThink(dt)}
+  if(role==='host'&&online){snapT+=dt;if(snapT>=1/30){snapT=0;try{conn.send(snap())}catch(e){}}}
   draw(dt);requestAnimationFrame(frame);
 }
 
 /* kontrol */
-function pt(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*1000,y:(e.clientY-r.top)/r.height*1000}}
+function pt(e){const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*1000,y=(e.clientY-r.top)/r.height*1000;return flip?{x:1000-x,y:1000-y}:{x,y}}
 cv.addEventListener('pointerdown',e=>{
-  if(state!=='aim'&&!(state==='fight'&&mode===2))return;
-  const p=pt(e),who=mode===2&&p.y<500?'A':'P',t=who==='P'?P:A;
-  if(t.launched)return;
+  if(mode===3&&!online)return;
+  const p=pt(e),who=mode===3?(role==='guest'?'A':'P'):(mode===2&&p.y<500?'A':'P'),t=who==='P'?P:A;
+  if(t.launched){if(state==='fight')doDash(t);return}
+  if(state!=='aim'&&!(state==='fight'&&mode>=2))return;
   cv.setPointerCapture(e.pointerId);drags[e.pointerId]={who,x:p.x,y:p.y};tone(260,.1,'triangle',.04);
 });
 cv.addEventListener('pointermove',e=>{const d=drags[e.pointerId];if(d){const p=pt(e);d.x=p.x;d.y=p.y}});
@@ -290,13 +343,123 @@ function release(e){
   const d=drags[e.pointerId];if(!d)return;delete drags[e.pointerId];
   if(e.type==='pointercancel')return;
   const t=d.who==='P'?P:A,vx=t.x-d.x,vy=t.y-d.y,l=Math.hypot(vx,vy),pw=Math.min(l,240)/240;
-  if(l>40){if(mode===2)launchT(t,vx,vy,pw);else launchP(vx,vy,pw)}else say('Tarikan terlalu pendek. Tarik lebih jauh.');
+  if(l>40){if(mode===3&&role==='guest'){if(conn&&online&&!A.launched&&(state==='aim'||state==='fight')){conn.send({t:'launch',dx:vx,dy:vy,pw});A.launched=true}}else if(mode>=2)launchT(t,vx,vy,pw);else launchP(vx,vy,pw)}else say('Tarikan terlalu pendek. Tarik lebih jauh.');
 }
+addEventListener('keydown',e=>{if(e.target&&e.target.tagName&&/SELECT|BUTTON|INPUT/.test(e.target.tagName))return;
+  if(e.code==='Space'){e.preventDefault();doDash(mode===3&&role==='guest'?A:P)}else if(e.code==='Enter'&&mode===2)dash(A)});
 cv.addEventListener('pointerup',release);cv.addEventListener('pointercancel',release);
 $('auto').onclick=()=>launchP(A.x-P.x+(Math.random()-.5)*80,A.y-P.y,.75);
 $('snd').onclick=()=>{muted=!muted;$('snd').textContent='Suara: '+(muted?'mati':'nyala')};
 $('re').onclick=()=>{clearTimeout(tmo);score={P:0,A:0};round=1;newRound()};
-function applyMode(){mode=+$('mode').value;$('auto').hidden=mode===2;$('lvl').hidden=mode===2;clearTimeout(tmo);score={P:0,A:0};round=1;newRound()}
+/* ===== online: kode ruang (PeerJS, tuan rumah menjalankan fisika) ===== */
+const AL='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',rs=h=>$('rs').innerHTML=h;
+function doDash(t){
+  if(mode===3&&role==='guest'){if(conn&&online&&state==='fight'&&t.launched&&!t.dead&&t.cd<=0)conn.send({t:'dash'})}
+  else dash(t);
+}
+function snap(){
+  const f=t=>[+t.x.toFixed(1),+t.y.toFixed(1),+t.vx.toFixed(1),+t.vy.toFixed(1),+t.spin.toFixed(1),+t.ang.toFixed(2),+t.ph.toFixed(2),+t.sc.toFixed(2),t.dead?1:0,t.out?1:0,t.launched?1:0,+t.cd.toFixed(2)];
+  const o={t:'s',st:state,r:round,s:[score.P,score.A],P:f(P),A:f(A),k:Math.round(shake),e:evs.splice(0,24)};
+  if(outMsg!==null){o.m=outMsg;outMsg=null}
+  return o;
+}
+function setT(t,a){t.x=a[0];t.y=a[1];t.vx=a[2];t.vy=a[3];t.spin=a[4];t.ang=a[5];t.ph=a[6];t.sc=a[7];t.dead=!!a[8];t.out=!!a[9];t.launched=!!a[10];t.cd=a[11]}
+function applySnap(o){
+  const nr=o.r!==round||(o.st==='aim'&&state!=='aim');
+  if(nr){tx.setTransform(1,0,0,1,0,0);tx.clearRect(0,0,tr.width,tr.height);parts=[]}
+  state=o.st;round=o.r;score={P:o.s[0],A:o.s[1]};setT(P,o.P);setT(A,o.A);
+  if(nr){P.px=P.x;P.py=P.y;A.px=A.x;A.py=A.y}
+  for(const e of o.e||[]){if(e[0]==='tn')tone(e[1],e[2],e[3],e[4]);else if(e[0]==='sp')spark(e[1],e[2],e[3])}
+  if(o.k>0)shake=Math.max(shake,o.k);
+  if(o.m!==undefined)$('say').innerHTML=o.m;
+  const hk=o.r+','+o.s;if(hk!==lastH){lastH=hk;hud()}
+}
+function guestStep(dt){
+  for(const t of [P,A]){
+    t.x+=t.vx*dt;t.y+=t.vy*dt;t.cd=Math.max(0,t.cd-dt);
+    t.ang+=state==='aim'?(t.s==='P'?3:-3)*dt:t.spin*dt*.12;
+    if(t.launched&&!t.dead){
+      t.ph+=dt*(6+(45-Math.min(t.spin,45))*.4);
+      if(Math.hypot(t.vx,t.vy)>30){tx.setTransform(sc,0,0,sc,0,0);tx.strokeStyle='rgba(85,48,22,.16)';tx.lineWidth=7;tx.lineCap='round';
+        tx.beginPath();tx.moveTo(t.px,t.py);tx.lineTo(t.x,t.y);tx.stroke()}
+    }
+    t.px=t.x;t.py=t.y;
+  }
+}
+function onData(o){
+  if(!o||typeof o!=='object')return;
+  if(role==='host'){
+    if(o.t==='launch'&&isFinite(o.dx)&&isFinite(o.dy)&&isFinite(o.pw))launchT(A,+o.dx,+o.dy,Math.min(1,Math.max(0,+o.pw)));
+    else if(o.t==='dash')dash(A);
+    return;
+  }
+  if(o.t==='s')applySnap(o);
+}
+function closeNet(){
+  clearTimeout(jt);
+  try{conn&&conn.close()}catch(e){}
+  try{peer&&peer.destroy()}catch(e){}
+  peer=conn=null;role=null;online=false;flip=false;evs=[];outMsg=null;lastH='';
+  $('code').hidden=true;$('mk').disabled=false;$('jn').disabled=false;
+}
+function lost(){
+  if(!online)return;
+  closeNet();$('mode').value='1';applyMode();
+  say('Koneksi terputus. Lawan keluar dari ruang, jadi kamu kembali ke mode VS AI.');
+}
+function mkRoom(tries){
+  if(typeof Peer==='undefined'){rs('Pustaka online gagal dimuat. Periksa koneksi internet lalu muat ulang halaman.');return}
+  closeNet();$('mk').disabled=true;$('jn').disabled=true;rs('Membuat ruang...');
+  const code=Array.from({length:5},()=>AL[Math.floor(Math.random()*AL.length)]).join('');
+  peer=new Peer('gasing-dsr-'+code);
+  peer.on('open',()=>{role='host';$('codeTxt').textContent=code;$('code').hidden=false;rs('Bagikan kode ini. Menunggu lawan bergabung...')});
+  peer.on('connection',c=>{
+    if(conn){c.close();return}
+    conn=c;c.on('open',startHost);c.on('data',onData);c.on('close',lost);c.on('error',lost);
+  });
+  peer.on('error',err=>{
+    if(err.type==='unavailable-id'&&(tries||0)<3){mkRoom((tries||0)+1);return}
+    closeNet();rs('Gagal membuat ruang ('+(err.type||'jaringan')+'). Coba lagi.');
+  });
+}
+function startHost(){
+  online=true;mode=3;score={P:0,A:0};round=1;lastH='';uiMode();newRound();
+  rs('Terhubung! Kamu <b>Garuda</b> (merah). Lawanmu <b>Naga</b> (hijau).');
+}
+function joinRoom(){
+  const code=$('rc').value.trim().toUpperCase();
+  if(code.length<4){rs('Masukkan kode ruang dari temanmu.');return}
+  if(typeof Peer==='undefined'){rs('Pustaka online gagal dimuat. Periksa koneksi internet lalu muat ulang halaman.');return}
+  closeNet();$('mk').disabled=true;$('jn').disabled=true;rs('Menghubungkan...');
+  peer=new Peer();
+  peer.on('open',()=>{
+    conn=peer.connect('gasing-dsr-'+code,{reliable:true});
+    jt=setTimeout(()=>{closeNet();rs('Ruang tidak merespons. Periksa kodenya atau minta lawan membuat ruang lagi.')},12000);
+    conn.on('open',()=>{
+      clearTimeout(jt);role='guest';online=true;mode=3;flip=true;score={P:0,A:0};round=1;lastH='';uiMode();hud();
+      rs('Terhubung! Kamu <b>Naga</b> (hijau). Layarmu dibalik agar gasingmu di bawah.');
+    });
+    conn.on('data',onData);conn.on('close',lost);conn.on('error',lost);
+  });
+  peer.on('error',err=>{closeNet();rs(err.type==='peer-unavailable'?'Kode ruang tidak ditemukan.':'Gagal terhubung ('+(err.type||'jaringan')+'). Coba lagi.')});
+}
+function uiMode(){
+  $('auto').hidden=mode!==1;$('lvl').hidden=mode!==1;$('room').hidden=mode!==3;
+  $('re').hidden=mode===3&&role==='guest';
+}
+function applyMode(){closeNet();mode=+$('mode').value;clearTimeout(tmo);score={P:0,A:0};round=1;uiMode();newRound();
+  if(mode===3){say('Buat ruang lalu bagikan kodenya, atau gabung dengan kode dari temanmu.');rs('Buat ruang lalu bagikan kodenya, atau masukkan kode dari temanmu.')}}
+$('mk').onclick=()=>mkRoom(0);
+$('jn').onclick=joinRoom;
+$('rc').addEventListener('keydown',e=>{if(e.key==='Enter')joinRoom()});
+$('cp').onclick=()=>{
+  const c=$('codeTxt').textContent,link=location.href.split('?')[0].split('#')[0]+'?room='+c;
+  (navigator.clipboard?navigator.clipboard.writeText(link):Promise.reject()).then(()=>rs('Tautan disalin. Kirim ke temanmu, atau bagikan kode <b>'+c+'</b>.'),()=>rs('Bagikan kode <b>'+c+'</b> ke temanmu.'));
+};
+addEventListener('load',()=>{
+  const q=new URLSearchParams(location.search).get('room');
+  if(q){$('mode').value='3';applyMode();$('rc').value=q.slice(0,5).toUpperCase();setTimeout(joinRoom,600)}
+});
 $('mode').onchange=applyMode;
 addEventListener('resize',resize);
 resize();newRound();requestAnimationFrame(frame);
