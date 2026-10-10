@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="author" content="Dani Sutrisno RPL">
+<meta name="author" content="Dani Sutrisno dan Dava Rianto RPL">
 <title>Gasing — Adu Putaran</title>
 <link href="https://fonts.googleapis.com/css2?family=Almendra+Display&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
@@ -56,6 +56,8 @@ summary{cursor:pointer;font-weight:600}
 @keyframes lsp{to{transform:rotate(360deg)}}
 .lb{width:min(260px,70vw)}
 .lb i{--c1:var(--gold);--c2:#b5651a;transition:width .25s}
+#load .cr{font-size:1rem;line-height:1.75;margin-top:6px}
+#load .cr b{font-size:1.4rem}
 #lt{margin:0;font-style:italic;color:var(--mute);min-height:1.4em}
 .cr{margin:4px 0 0;color:var(--mute);font-size:.92rem;text-align:center}
 .cr b{color:var(--gold);font-family:'Almendra Display',Georgia,serif;font-weight:400;font-size:1.1rem;letter-spacing:.03em}
@@ -68,7 +70,7 @@ summary{cursor:pointer;font-weight:600}
   <div class="lw"><div class="lt"></div></div>
   <div class="meter lb"><i id="lp"></i></div>
   <p id="lt">Menyiapkan gelanggang...</p>
-  <p class="cr">Dibuat oleh <b>Dani Sutrisno RPL</b></p>
+  <p class="cr">Dibuat oleh<br><b>Dani Sutrisno</b> dan <b>Dava Rianto</b><br>RPL</p>
 </div>
 <main>
   <h1>GASING</h1>
@@ -76,14 +78,14 @@ summary{cursor:pointer;font-weight:600}
   <section class="hud" aria-label="Papan skor">
     <div class="side p"><div class="nm">Garuda<small id="tagP">kamu</small></div><div class="pips" id="pipP"></div><div class="meter"><i id="mP"></i></div></div>
     <div id="rd">Ronde 1</div>
-    <div class="side a"><div class="nm"><small id="tagA">Mbah</small>Naga</div><div class="pips" id="pipA"></div><div class="meter"><i id="mA"></i></div></div>
+    <div class="side a"><div class="nm"><small id="tagA">AI</small>Naga</div><div class="pips" id="pipA"></div><div class="meter"><i id="mA"></i></div></div>
   </section>
   <div class="arena"><canvas id="cv" aria-label="Gelanggang gasing. Tarik ke bawah dari gasing merah lalu lepas untuk melempar."></canvas></div>
   <div id="say" aria-live="polite"></div>
   <div class="bar">
-    <select id="mode" aria-label="Mode permainan"><option value="1">1 pemain</option><option value="2">2 pemain</option></select>
+    <select id="mode" aria-label="Mode permainan"><option value="1">VS AI (main sendiri)</option><option value="2">2 pemain (satu layar)</option></select>
     <button class="btn" id="auto">Lempar otomatis</button>
-    <select id="lvl" aria-label="Tingkat kesulitan"><option value="hard">Naga: Gesit</option><option value="easy">Naga: Santai</option></select>
+    <select id="lvl" aria-label="Tingkat kesulitan"><option value="hard">AI Naga: Gesit</option><option value="easy">AI Naga: Santai</option></select>
     <button class="btn" id="snd">Suara: nyala</button>
     <button class="btn" id="re">Mulai ulang</button>
   </div>
@@ -95,10 +97,11 @@ summary{cursor:pointer;font-weight:600}
       <li>Saat bertabrakan, gasing yang putarannya lebih lemah terpental lebih jauh dan kehilangan lebih banyak putaran.</li>
       <li>Gasing kalah jika terlempar keluar dari lingkar emas atau putarannya habis dan tumbang.</li>
       <li>Menangkan dua dari tiga ronde.</li>
+      <li><b>VS AI:</b> main sendiri melawan Naga. Pilih tingkat Santai atau Gesit di samping pilihan mode.</li>
       <li><b>Mode 2 pemain:</b> Pemain 1 menarik dari gasing merah (bawah), Pemain 2 dari gasing hijau (atas). Boleh bersamaan dengan dua jari, atau bergantian. Yang belum melempar setelah 5 detik dilempar otomatis.</li>
     </ol>
   </details>
-  <footer class="cr">Dibuat oleh <b>Dani Sutrisno RPL</b></footer>
+  <footer class="cr">Dibuat oleh <b>Dani Sutrisno</b> dan <b>Dava Rianto</b> RPL</footer>
 </main>
 <script>
 const $=id=>document.getElementById(id);
@@ -209,7 +212,7 @@ function endRound(w){
   state='over';if(w)score[w]++;hud();
   const nm={P:'Garuda',A:'Naga'};
   if(score.P===2||score.A===2){
-    say(mode===2?'<b>'+(score.P===2?'Pemain 1 (Garuda)':'Pemain 2 (Naga)')+' juara!</b> Tekan Mulai ulang untuk adu lagi.':score.P===2?'<b>Kamu juara!</b> Garuda menguasai gelanggang. Tekan Mulai ulang untuk adu lagi.':'<b>Naga juara.</b> Putaran Mbah lebih awet kali ini. Tekan Mulai ulang untuk balas.');
+    say(mode===2?'<b>'+(score.P===2?'Pemain 1 (Garuda)':'Pemain 2 (Naga)')+' juara!</b> Tekan Mulai ulang untuk adu lagi.':score.P===2?'<b>Kamu juara!</b> Garuda menguasai gelanggang. Tekan Mulai ulang untuk adu lagi.':'<b>Naga juara.</b> Putaran Naga lebih awet kali ini. Tekan Mulai ulang untuk balas.');
     state='done';return;
   }
   say(w?`<b>${nm[w]}</b> menang ronde ${round}.`:'Ronde ini <b>seri</b>, dua-duanya tumbang.');
@@ -218,7 +221,7 @@ function endRound(w){
 function hud(){
   ['P','A'].forEach(k=>{$('pip'+k).innerHTML=[0,1].map(i=>`<span class="${i<score[k]?'on':''}"></span>`).join('')});
   $('rd').textContent='Ronde '+Math.min(round,3);
-  $('tagP').textContent=mode===2?'P1':'kamu';$('tagA').textContent=mode===2?'P2':'Mbah';
+  $('tagP').textContent=mode===2?'P1':'kamu';$('tagA').textContent=mode===2?'P2':'AI';
 }
 const say=h=>$('say').innerHTML=h;
 
