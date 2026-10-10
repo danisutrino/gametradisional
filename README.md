@@ -2,7 +2,7 @@
 
 Game gasing tradisional Nusantara berbasis web. Tarik tali, lempar gasing ke gelanggang pasir, dan bertahanlah paling lama. Dibuat dengan satu file HTML, tanpa framework dan tanpa instalasi.
 
-**Demo:** `https://USERNAME.github.io/NAMA-REPO/` (ganti dengan alamat GitHub Pages kamu)
+**Demo:** `https://github.com/danisutrino/gametradisional
 
 ## Fitur
 
@@ -32,7 +32,7 @@ Game gasing tradisional Nusantara berbasis web. Tarik tali, lempar gasing ke gel
 Tidak perlu instalasi. Cukup unduh repository ini lalu buka `index.html` di browser.
 
 ```bash
-git clone https://github.com/USERNAME/NAMA-REPO.git
+git clone https://github.com/danisutrino/gametradisional
 cd NAMA-REPO
 # buka index.html di browser
 ```
