@@ -2,7 +2,7 @@
 
 Game gasing tradisional Nusantara berbasis web. Tarik tali, lempar gasing ke gelanggang pasir, dan bertahanlah paling lama. Dibuat dengan satu file HTML, tanpa framework dan tanpa instalasi.
 
-**Demo:** `https://github.com/danisutrino/gametradisional
+**Demo:** `https://danisutrino.github.io/gametradisional/
 
 ## Fitur
 
